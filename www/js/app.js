@@ -815,6 +815,11 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
     // DEV: If you want to support more namespaces, add them to the END of the character set [-IJ] (not to the beginning) 
     var regexpTagsWithZimUrl = /(<(?:img|script|link|video|audio|source|track)\b[^>]*?\s)(?:src|href)(\s*=\s*["'])(?:\.\.\/|\/)+(?=[-IJ]\/)/ig;
     
+    // DEV: The regex below matches ZIM links (anchor hrefs) that should have the html5 "donwnload" attribute added to 
+    // the link. This is currently the case for epub files in Project Gutenberg ZIMs -- add any further types you need
+    // to support to this regex. The "zip" has been added here as an example of how to support further filetypes
+    var regexpDownloadLinks = /^.*?\.epub($|\?)|^.*?\.zip($|\?)/i
+    
     // Cache for CSS styles contained in ZIM.
     // It significantly speeds up subsequent page display. See kiwix-js issue #335
     var cssCache = new Map();
@@ -843,6 +848,9 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
+
+        // Hide any download alert box that was activated in gotoArticle function
+        $('#downloadAlert').alert('close');
         
         var iframeArticleContent = document.getElementById('articleContent');
         
@@ -914,12 +922,27 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // It's an external URL : we should open it in a new tab
                     this.target = "_blank";
                 } else {
-                    // It's a link to another article
-                    // Add an onclick event to go to this article
+                    // It's a link to an article or file in the ZIM
+                    var decodedURL = decodeURIComponent(zimUrl);
+                    if (regexpDownloadLinks.test(href)) {
+                        // It's a link to a file in the ZIM that needs to be downloaded, not displayed (e.g. *.epub)
+                        var filename = decodedURL.replace(/^.*\/([^\/]+)$/, '$1');
+                        var downloadAttribute = this.getAttribute('download');
+                        if (!downloadAttribute) this.setAttribute('download', filename);
+                        var contentType = this.getAttribute('type');
+                        if (!contentType) {
+                            // DEV: Add more contentTypes here for downloadable files
+                            if (/\.epub$/.test(decodedURL)) contentType = 'application/epub+zip';
+                            if (/\.zip$/.test(decodedURL)) contentType = 'application/zip';
+                            if (contentType) this.setAttribute('type', contentType);
+                        }
+                    }    
+                    // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     $(this).on('click', function (e) {
-                        var decodedURL = decodeURIComponent(zimUrl);
-                        goToArticle(decodedURL);
+                        var downloadAttribute = this.getAttribute('download');
+                        var contentType = this.getAttribute('type');
+                        goToArticle(decodedURL, downloadAttribute, contentType);
                         return false;
                     });
                 }
@@ -1112,16 +1135,54 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
 
 
     /**
-     * Replace article content with the one of the given title
-     * @param {String} title
+     * Extracts the content of the given article title, or a downloadable file, from the ZIM
+     * 
+     * @param {String} title The path and filename to the article or file to be extracted
+     * @param {Boolean} download If true, the file will be prepared for download instead of treated as an article
+     * @param {String} contentType The mimetype of the downloadable file, if known 
      */
-    function goToArticle(title) {
+    function goToArticle(title, download, contentType) {
         $("#searchingArticles").show();
         title = uiUtil.removeUrlParameters(title);
         selectedArchive.getDirEntryByTitle(title).then(function(dirEntry) {
             if (dirEntry === null || dirEntry === undefined) {
                 $("#searchingArticles").hide();
                 alert("Article with title " + title + " not found in the archive");
+            } else if (download) {
+                selectedArchive.readBinaryFile(dirEntry, function (fileDirEntry, content) {
+                    // We have to create the alert box in code, because Bootstrap removes it completely from the DOM when the user dismisses it
+                    document.getElementById('alertBoxDivFooter').innerHTML =
+                        '<div id="downloadAlert" class="alert alert-info alert-dismissible">' +
+                        '    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                        '    <span id="alertMessage"></span>' +
+                        '</div>';
+                    // Download code adapted from https://stackoverflow.com/a/19230668/9727685 
+                    if (!contentType) contentType = 'application/octet-stream';
+                    var a = document.createElement('a');
+                    var blob = new Blob([content], { 'type': contentType });
+                    var filename = download || title.replace(/^.*\/([^\/]+)$/, '$1');
+                    // Make filename safe
+                    filename = filename.replace(/[\/\\:*?"<>|]/g, '_');
+                    a.href = window.URL.createObjectURL(blob);
+                    a.target = '_blank';
+                    a.type = contentType;
+                    a.download = filename;
+                    a.classList.add('alert-link');
+                    a.innerHTML = filename;
+                    var alertMessage = document.getElementById('alertMessage');
+                    alertMessage.innerHTML = '<strong>Download</strong> If the download does not start, please tap the following link: ';
+                    // We have to add the anchor to a UI element for Firefox to be able to click it programmatically: see https://stackoverflow.com/a/27280611/9727685
+                    alertMessage.appendChild(a);
+                    try { a.click(); }
+                    catch (err) {
+                        // If the click fails, attempt an alternative download method
+                        if (window.navigator && window.navigator.msSaveBlob) {
+                            // This works for IE11
+                            window.navigator.msSaveBlob(blob, filename);
+                        }
+                    }
+                    $("#searchingArticles").hide();
+                });
             } else {
                 readArticle(dirEntry);
             }
