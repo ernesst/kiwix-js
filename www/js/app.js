@@ -849,7 +849,7 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
         // Tell jQuery we're removing the iframe document: clears jQuery cache and prevents memory leaks [kiwix-js #361]
         $('#articleContent').contents().remove();
 
-        // Hide any download alert box that was activated in gotoArticle function
+        // Hide any download alert box that was activated in goToArticle function
         $('#downloadAlert').alert('close');
         
         var iframeArticleContent = document.getElementById('articleContent');
@@ -1138,7 +1138,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Extracts the content of the given article title, or a downloadable file, from the ZIM
      * 
      * @param {String} title The path and filename to the article or file to be extracted
-     * @param {Boolean} download If true, the file will be prepared for download instead of treated as an article
+     * @param {String|Boolean} download A Bolean value that will trigger download of title, or the filename to download
+     *     if it is different from title (in HTML5 spec, a string value for the download attribute is optional)
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
     function goToArticle(title, download, contentType) {
