@@ -924,12 +924,17 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                 } else {
                     // It's a link to an article or file in the ZIM
                     var decodedURL = decodeURIComponent(zimUrl);
-                    if (regexpDownloadLinks.test(href)) {
-                        // It's a link to a file in the ZIM that needs to be downloaded, not displayed (e.g. *.epub)
-                        var filename = decodedURL.replace(/^.*\/([^\/]+)$/, '$1');
-                        var downloadAttribute = this.getAttribute('download');
-                        if (!downloadAttribute) this.setAttribute('download', filename);
-                        var contentType = this.getAttribute('type');
+                    var contentType;
+                    // Some file types need to be downloaded rather than displayed (e.g. *.epub)
+                    // The HTML download attribute can be Boolean or a string representing the specified filename for saving the file
+                    // For Boolean values, getAttribute can return any of the following: download="" download="download" download="true"
+                    // So we need to test hasAttribute first: see https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute
+                    // However, we cannot rely on the download attribute having been set, so we also need to test for known download file types
+                    var downloadAttribute = this.hasAttribute('download') || regexpDownloadLinks.test(href);
+                    if (downloadAttribute) {
+                        var downloadValue = this.getAttribute('download');
+                        if (downloadValue) downloadAttribute = /download|true/i.test(downloadValue) || downloadValue;
+                        contentType = this.getAttribute('type');
                         if (!contentType) {
                             // DEV: Add more contentTypes here for downloadable files
                             if (/\.epub$/.test(decodedURL)) contentType = 'application/epub+zip';
@@ -940,8 +945,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     // Add an onclick event to extract this article or file from the ZIM
                     // instead of following the link
                     $(this).on('click', function (e) {
-                        var downloadAttribute = this.getAttribute('download');
-                        var contentType = this.getAttribute('type');
                         goToArticle(decodedURL, downloadAttribute, contentType);
                         return false;
                     });
@@ -1138,8 +1141,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
      * Extracts the content of the given article title, or a downloadable file, from the ZIM
      * 
      * @param {String} title The path and filename to the article or file to be extracted
-     * @param {String|Boolean} download A Bolean value that will trigger download of title, or the filename to download
-     *     if it is different from title (in HTML5 spec, a string value for the download attribute is optional)
+     * @param {Boolean|String} download A Bolean value that will trigger download of title, or the filename that should
+     *     be used to save the file in local FS (in HTML5 spec, a string value for the download attribute is optional)
      * @param {String} contentType The mimetype of the downloadable file, if known 
      */
     function goToArticle(title, download, contentType) {
@@ -1161,7 +1164,8 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     if (!contentType) contentType = 'application/octet-stream';
                     var a = document.createElement('a');
                     var blob = new Blob([content], { 'type': contentType });
-                    var filename = download || title.replace(/^.*\/([^\/]+)$/, '$1');
+                    // If the filename to use for saving has not been specified, construct it from title
+                    var filename = download === true ? title.replace(/^.*\/([^\/]+)$/, '$1') : download;
                     // Make filename safe
                     filename = filename.replace(/[\/\\:*?"<>|]/g, '_');
                     a.href = window.URL.createObjectURL(blob);
