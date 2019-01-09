@@ -1179,10 +1179,13 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                     alertMessage.appendChild(a);
                     try { a.click(); }
                     catch (err) {
-                        // If the click fails, attempt an alternative download method
+                        // If the click fails, user may be able to download by manually clicking the link
+                        // But for IE11 we need to force use of the saveBlob method with the onclick event 
                         if (window.navigator && window.navigator.msSaveBlob) {
-                            // This works for IE11
-                            window.navigator.msSaveBlob(blob, filename);
+                            a.addEventListener('click', function(e) {
+                                window.navigator.msSaveBlob(blob, filename);
+                                e.preventDefault();
+                            });
                         }
                     }
                     $("#searchingArticles").hide();
