@@ -939,7 +939,6 @@ define(['jquery', 'zimArchiveLoader', 'util', 'uiUtil', 'cookies','abstractFiles
                             // DEV: Add more contentTypes here for downloadable files
                             if (/\.epub$/.test(decodedURL)) contentType = 'application/epub+zip';
                             if (/\.zip$/.test(decodedURL)) contentType = 'application/zip';
-                            if (contentType) this.setAttribute('type', contentType);
                         }
                     }    
                     // Add an onclick event to extract this article or file from the ZIM
