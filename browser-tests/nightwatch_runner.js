@@ -62,9 +62,11 @@ module.exports = {
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)
             // Hide the bottom bar, so that it is not above any content
-            .execute(function(elementId){
-                document.getElementById(elementId).style.visibility='hidden';
-                },['navigationButtons'])
+            .execute(function(){
+                var sheet = window.document.styleSheets[0];
+                sheet.insertRule('[role=region] > footer {visibility: hidden;}', sheet.cssRules.length);
+                },[]
+            )
 
             // Start a search with the prefix "Ray"
             .setValue('#prefix', "Ray")
