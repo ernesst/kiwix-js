@@ -61,6 +61,11 @@ module.exports = {
             
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)
+            // Hide the bottom bar, so that it is not above any content
+            .execute(function(elementId){
+                document.getElementbyId(elementId).style.visibility='hidden';
+                },['navigationButtons'])
+
             // Start a search with the prefix "Ray"
             .setValue('#prefix', "Ray")
             .click('#searchArticles')
