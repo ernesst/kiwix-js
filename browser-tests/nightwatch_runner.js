@@ -88,10 +88,12 @@ module.exports = {
             .assert.attributeEquals("//td[@id='mwCA']/p/span/img", "naturalWidth", "250")
             // Check the CSS style
             .useCss()
+            .waitForElementVisible('#mwBA', 20000)
             // TODO : how can we be sure that the CSS has already been applied?
             .assert.cssProperty("#mwBA", "float", "right")
     
             // Click on a hypertext link to another article "Quincy Jones"
+            .waitForElementVisible('#mwBTI', 20000)
             .moveToElement('#mwBTI', 10, 10)
             .click("#mwBTI")
             // Check the text of the article "Quincy Jones"
@@ -104,10 +106,10 @@ module.exports = {
             .assert.attributeEquals("#mwAiI", "naturalWidth", "180")
             // Check the CSS style
             // TODO : how can we be sure that the CSS has already been applied?
+            .waitForElementVisible('#mwBA', 20000)
             .assert.cssProperty("#mwBA", "float", "right")
     
             // Use the back button of the browser, to go back to "Ray Charles" article
-            .frame()
             .back()
             .frame('articleContent')
             // Check the text in the article "Ray Charles"
