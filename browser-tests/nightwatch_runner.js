@@ -62,10 +62,10 @@ module.exports = {
             .waitForElementVisible('#formArticleSearch', 20000)
             .waitForElementVisible('#searchArticles', 20000)
             // Hide the bottom bar, so that it is not above any content
-            .execute(function(){
-                var sheet = window.document.styleSheets[0];
-                sheet.insertRule('[role=region] > footer {visibility: hidden;}', sheet.cssRules.length);
-                },[]
+            .execute(function(vis){
+                var footer = document.getElementsByTagName('footer')[0];
+                footer.style.visibility=vis;
+                },['hidden']
             )
 
             // Start a search with the prefix "Ray"
@@ -113,9 +113,9 @@ module.exports = {
             // TODO : how can we be sure that the CSS has already been applied?
             .assert.cssProperty("#mwBA", "float", "right")
     
-            // Use the back button of the UI, to go back to "Ray Charles" article
+            // Use the back button of the browser, to go back to "Ray Charles" article
             .frame()
-            .click("#btnBack")
+            .back()
             .frame('articleContent')
             // Check the text in the article "Ray Charles"
             .useXpath()
