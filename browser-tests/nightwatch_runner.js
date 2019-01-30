@@ -111,7 +111,6 @@ module.exports = {
     
             // Use the back button of the browser, to go back to "Ray Charles" article
             .back()
-            .frame('articleContent')
             // Check the text in the article "Ray Charles"
             .useXpath()
             .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
