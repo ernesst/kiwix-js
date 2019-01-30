@@ -97,8 +97,8 @@ module.exports = {
             .click("#mwBTI")
             // Check the text of the article "Quincy Jones"
             .useXpath()
-            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwnw']", 40000)
-            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwnw']", 'perspective of past, present and future')
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 40000)
+            .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/blockquote[@id='mwnw']", 'perspective of past, present and future')
             // Wait for a particular image to be visible and check its size
             .useCss()
             .waitForElementVisible("#mwAiI", 20000)
