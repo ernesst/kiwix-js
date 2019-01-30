@@ -80,7 +80,7 @@ module.exports = {
             .frame('articleContent')
             // Check the text in the article "Ray Charles"
             .useXpath()
-            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
             // Wait for a particular image to be visible and check its size
             .useXpath()
@@ -98,7 +98,7 @@ module.exports = {
             .click("#mwBTI")
             // Check the text of the article "Quincy Jones"
             .useXpath()
-            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 20000)
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 40000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mwAfg']", 'Personal life')
             // Wait for a particular image to be visible and check its size
             .useCss()
@@ -113,7 +113,7 @@ module.exports = {
             .back()
             // Check the text in the article "Ray Charles"
             .useXpath()
-            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 2000000)
+            .waitForElementPresent("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 40000)
             .assert.containsText("//div[@id='content']/div[@id='mw-content-text']/h2[@id='mweQ']", 'Life and career')
             // Wait for a particular image to be visible and check its size
             .useXpath()
