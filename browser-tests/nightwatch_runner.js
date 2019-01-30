@@ -94,7 +94,6 @@ module.exports = {
     
             // Click on a hypertext link to another article "Quincy Jones"
             .waitForElementVisible('#mwBTI', 20000)
-            .moveToElement('#mwBTI', 10, 10)
             .click("#mwBTI")
             // Check the text of the article "Quincy Jones"
             .useXpath()
